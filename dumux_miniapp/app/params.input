@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: Copyright © Timo Koch
+# SPDX-License-Identifier: CC0-1.0
+
+[TimeLoop]
+TEnd = 72h
+InitialTimeStepSize = 1h
+
+[Grid]
+File = ../../data/mesh-data/mri_processed_data/sub-01/modeling/resolution32/data.vtu
+Verbosity = true
+
+[Problem]
+Name = diffusion
+SurfaceConductance = 2e-4 # in mm/s
+TransferCoeffToBlood = 1e-6 # in 1/s
+PorosityBrain = 0.2
+PorositySAS = 0.4
+DiffusionType = LiteratureIsotropic
+UseCurveFit = true
+DiffusionFactor = 1.0
+
+[LevenbergMarquardt]
+BaseEpsilon = 1e-3

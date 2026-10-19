@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.DS_Store
+data/
+data_extension/
+results/*
+!results/boundary_params_recovered.npy
+!results/official_clock_hours.npy
+dumux_miniapp/build-*/

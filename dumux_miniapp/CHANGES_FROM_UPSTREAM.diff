@@ -1,0 +1,86 @@
+diff -ruN a/app/main.cc b/app/main.cc
+--- a/app/main.cc	2026-10-19 13:38:05
++++ b/app/main.cc	2026-10-19 13:38:05
+@@ -110,6 +110,8 @@
+         transferCoeffToBlood_ = getParam<Scalar>("Problem.TransferCoeffToBlood");
+         porosityBrain_ = getParam<Scalar>("Problem.PorosityBrain", 0.2);
+         porositySAS_ = getParam<Scalar>("Problem.PorositySAS", 1.0);
++        kGM_ = getParam<Scalar>("Problem.TransferCoeffToBloodGM", transferCoeffToBlood_);
++        kWM_ = getParam<Scalar>("Problem.TransferCoeffToBloodWM", transferCoeffToBlood_);
+ 
+         // the time points at which the boundary data is given
+         times_ = {0, 15716, 86001, 172280, 251641};
+@@ -119,6 +121,15 @@
+ 
+         // whether to use isotropic mean diffusion or the full potentially anisotropic diffusion tensor
+         const auto diffType = getParam<std::string>("Problem.DiffusionType", "DataTensor");
++        if (diffType == "DataTensor")
++            diffusionType_ = DiffusionType::DataTensor;
++        else if (diffType == "DataIsotropic")
++            diffusionType_ = DiffusionType::DataIsotropic;
++        else if (diffType == "LiteratureIsotropic")
++            diffusionType_ = DiffusionType::LiteratureIsotropic;
++        else
++            DUNE_THROW(Dune::InvalidStateException, "Invalid diffusion type: " << diffType);
++        std::cout << Fmt::format("Resolved DiffusionType = {}; DiffusionFactor = {}; TransferCoeffToBlood = {}; PorosityBrain = {}\n", diffType, getParam<Scalar>("Problem.DiffusionFactor", 1.0), transferCoeffToBlood_, porosityBrain_);
+     }
+ 
+     BoundaryTypes boundaryTypesAtPos(const GlobalPosition& globalPos) const
+@@ -155,7 +166,7 @@
+                        const SubControlVolume &scv) const
+     {
+         return {
+-            -(elemVolVars[scv].priVar(0)/porosityBrain_)*transferCoeffToBlood_
++            -(elemVolVars[scv].priVar(0)/porosityBrain_)*(tissueMarker_[scv.elementIndex()] == 2 ? kWM_ : kGM_)
+         };
+     }
+ 
+@@ -206,6 +217,8 @@
+ 
+ private:
+     Scalar k_;
++    Scalar kGM_, kWM_;
++    std::vector<int> tissueMarker_;
+     Scalar transferCoeffToBlood_;
+     Scalar porosityBrain_, porositySAS_;
+     std::vector<Tensor> diffusionCoefficient_;
+@@ -222,10 +235,12 @@
+     {
+         const auto& gridView = this->gridGeometry().gridView();
+         diffusionCoefficient_.resize(gridView.size(0), Tensor(0.0));
++        tissueMarker_.resize(gridView.size(0));
+ 
+         for (const auto& element : elements(gridView))
+         {
+             const auto eIdx = this->gridGeometry().elementMapper().index(element);
++            tissueMarker_[eIdx] = gridData.getParameter(element, "subdomains");
+             if (diffusionType_ == DiffusionType::DataTensor)
+             {
+                 static const auto waterToGadobutrolRatio = getParam<Scalar>("Problem.DiffusionCoefficientWaterToGadobutrolRatio", 3.5e-10/3e-9); // mm^2/s
+@@ -251,6 +266,17 @@
+             }
+         }
+ 
++        for (const auto& element : elements(gridView))
++        {
++            const auto eIdx = this->gridGeometry().elementMapper().index(element);
++            const auto scale = tissueMarker_[eIdx] == 2
++                ? getParam<Scalar>("Problem.WMDiffusionScale", 1.0)
++                : getParam<Scalar>("Problem.GMDiffusionScale", 1.0);
++            const auto field = getParam<bool>("Problem.UseHeterogeneityField", false)
++                ? gridData.getParameter(element, "phase8h_scale") : 1.0;
++            diffusionCoefficient_[eIdx] *= scale*field;
++        }
++
+         Dune::BlockVector<Scalar> boundaryData(times_.size());
+         concentrationBoundaryDataParams_.resize(this->gridGeometry().numDofs());
+         std::size_t converged = 0;
+@@ -555,7 +581,7 @@
+         problem->updateBoundaryDataForOutput(boundaryConcentration, timeLoop->time());
+         computeRegionalAverages();
+ 
+-        if (vtkAtCheckPoints && timeLoop->isCheckPoint())
++        if (!vtkAtCheckPoints || timeLoop->isCheckPoint())
+             vtkWriter.write(timeLoop->time());
+ 
+         // report statistics of this time step

@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: Copyright © Timo Koch
+# SPDX-License-Identifier: CC0-1.0
+
+[Grid]
+File = ../../data/mesh-data/mri_processed_data/sub-01/modeling/resolution32/data.vtu
+Verbosity = true
+
+[LevenbergMarquardt]
+BaseEpsilon = 1e-3
