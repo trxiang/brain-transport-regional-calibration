@@ -23,7 +23,8 @@ MAX_H_MM = 234.0                               # journal maximum figure height
 FONT = os.environ.get("FIG_FONT")              # e.g. Arial for Springer journals
 PREFIX = os.environ.get("FIG_PREFIX", "Figure")
 UPPER = bool(os.environ.get("FIG_UPPER"))      # panel letters as A, B, C (MRM style); adds letters where missing
-ADD_LETTERS = {"q2_flow_speed_recovery": 3, "q5_nuisance_fits": 2, "q9_groups": 4, "q6_correlated_noise": 3,
+NOTITLE = bool(os.environ.get("FIG_NOTITLE"))  # MRM Style Guide: no titles in graphs (titles go in the captions)
+ADD_LETTERS = {"q7_published_pipeline": 2, "q2_flow_speed_recovery": 3, "q5_nuisance_fits": 2, "q9_groups": 4, "q6_correlated_noise": 3,
                "robustness_geometry_mesh": 2}
 MIN_PT = float(os.environ.get("FIG_MIN_PT", "0"))   # minimum lettering size before export scaling (0 = off)
 SYMBOLS = [(r"\balpha\b", "α"), (r"\bchi2\b", "χ²"), (r"\+-", "±"), (r"<=", "≤"), (r">=", "≥"), (r"Wahlin", "Wåhlin")]
@@ -80,7 +81,11 @@ def polish(fig):
 
 def upper_letters(fig, name):
     """Capitalise existing panel letters and add A, B, C ... to multi-panel figures that have none."""
+    from matplotlib.axes import Axes
     from matplotlib.text import Text
+    if NOTITLE:
+        for ax in fig.findobj(Axes):
+            ax.set_title("")
     for t in fig.findobj(Text):
         s = t.get_text()
         if s in ("a", "b", "c", "d") and t.get_fontweight() in ("bold", 700):
@@ -88,6 +93,8 @@ def upper_letters(fig, name):
         elif re.match(r"^\([a-d]\) ", s):
             t.set_text("(" + s[1].upper() + s[2:])
     n = ADD_LETTERS.get(name)
+    if name == "q7_published_pipeline" and not NOTITLE:
+        n = None
     if n:
         axes = [ax for ax in fig.axes if ax.get_label() != "<colorbar>"][:n]
         for ax, t in zip(axes, "ABCD"):
