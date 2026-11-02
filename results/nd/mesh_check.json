@@ -1,0 +1,64 @@
+{
+  "base": {
+    "truth": "base",
+    "field_rel_err": 0.03720468046506237,
+    "roi_rel_err": 0.024054242671001345,
+    "depth_rel_err": 0.0213512987846996,
+    "alpha_fine_roi": 0.9206701377437191,
+    "alpha_coarse_roi": 1.0000000000000695,
+    "alpha_fine_field": 0.918503170226604,
+    "alpha_coarse_field": 1.0000000002805878
+  },
+  "flow_pial_inflow_drainage_1": {
+    "truth": "flow_pial_inflow_drainage_1",
+    "field_rel_err": 0.04547021519414943,
+    "roi_rel_err": 0.03794204741910055,
+    "depth_rel_err": 0.03173590359790351,
+    "flow_signal_field_err": 0.4330745099700613,
+    "flow_signal_roi_err": 0.5063501864879081,
+    "upwind_flow_signal_field_err": 1.0723597615141462,
+    "alpha_fine_roi": 1.0168906740873878,
+    "alpha_coarse_roi": 1.1000579139191342,
+    "alpha_fine_field": 1.02877347025133,
+    "alpha_coarse_field": 1.114910651072715
+  },
+  "flow_pial_inflow_drainage_4": {
+    "truth": "flow_pial_inflow_drainage_4",
+    "field_rel_err": 0.0835722496176489,
+    "roi_rel_err": 0.08258896190798275,
+    "depth_rel_err": 0.06613394315597856,
+    "flow_signal_field_err": 0.453855898624276,
+    "flow_signal_roi_err": 0.5269669927015522,
+    "upwind_flow_signal_field_err": 0.8532718891093249,
+    "alpha_fine_roi": 1.3795737117519349,
+    "alpha_coarse_roi": 1.4912879054973465,
+    "alpha_fine_field": 1.4456711302234018,
+    "alpha_coarse_field": 1.5672699564502282
+  },
+  "flow_pial_to_ventricle_flux_4": {
+    "truth": "flow_pial_to_ventricle_flux_4",
+    "field_rel_err": 0.12903264406478393,
+    "roi_rel_err": 0.16250755640063164,
+    "depth_rel_err": 0.10076511147111285,
+    "flow_signal_field_err": 0.9892566998367085,
+    "flow_signal_roi_err": 6.069291465789645,
+    "upwind_flow_signal_field_err": 1.5041053029560256,
+    "alpha_fine_roi": 0.9404624406787537,
+    "alpha_coarse_roi": 0.9941481498505913,
+    "alpha_fine_field": 1.1058123524590098,
+    "alpha_coarse_field": 1.1601381540743219
+  },
+  "flow_basal_to_dorsal_4": {
+    "truth": "flow_basal_to_dorsal_4",
+    "field_rel_err": 0.16799872316241696,
+    "roi_rel_err": 0.20751857905950008,
+    "depth_rel_err": 0.12066017837999078,
+    "flow_signal_field_err": 0.9506858340463994,
+    "flow_signal_roi_err": 1.9158196648408132,
+    "upwind_flow_signal_field_err": 1.418101742351631,
+    "alpha_fine_roi": 1.1099630366075217,
+    "alpha_coarse_roi": 1.1720827896981354,
+    "alpha_fine_field": 1.0945305338458124,
+    "alpha_coarse_field": 1.1840967615309808
+  }
+}

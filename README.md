@@ -1,7 +1,9 @@
 # Brain transport: regional calibration and diffusion-field mismatch
 
-Code for the article *Coarse regional calibration can conceal diffusion-field mismatch in a human-derived brain
-transport model* (submitted to *Journal of the Royal Society Interface*).
+Code for the article *Apparent enhanced diffusion in human tracer MRI: what calibrated brain transport models can and
+cannot identify* (version 2.0; see "Version 2.0 analyses" below), and for its predecessor *Coarse regional calibration
+can conceal diffusion-field mismatch in a human-derived brain transport model* (version 1.0), whose analyses are
+described first.
 
 The model is tracer diffusion with clearance in one human-derived brain geometry,
 
@@ -92,6 +94,40 @@ and a level-2 Gauss–Newton step on 32 cores with 4 GB per core, each within 36
 * **Refined meshes** use red refinement (each tetrahedron into 8 along the shortest interior diagonal), inherited labels
   and coefficients, and the piecewise-linear interpolant of the coarse boundary input, so every level sees the same
   continuous data.
+
+## Version 2.0 analyses
+
+Version 2.0 extends the model to tissue flow, superficial CSF perfusion and a prescribed (Dirichlet) boundary, adds
+two further geometries and the public Gonzo concentration maps, and asks what calibrated models can identify.
+Figures, tables and sections below refer to the version 2.0 article and its Online Resource 1.
+
+| Script | Result |
+| --- | --- |
+| `nd_common.py`, `nd_check.py` | Shared setup (advection, error models, whitened observation operators) and its checks (reproduction of `twin.Solver`, conservation, sensitivities) |
+| `ext_solver.py` | Extended solver: perfusion source, prescribed boundary values, regional diffusivity, nuisance parameters |
+| `q1_error_budget.py`, `q1_summary.py` | Error budget (Fig. 1, Table S1) |
+| `q2_flow_detect.py`, `q2_summary.py` | Flow recovery and detection (Fig. 2) |
+| `q2_mesh_check.py` | Flow truths on the refined mesh (Table S4) |
+| `q6_correlated_noise.py` | Detection under spatially correlated noise (Table S3, Fig. S2) |
+| `q8_perfusion.py` | Superficial CSF perfusion (Fig. 3, Table S9) |
+| `q7_pipeline.py` | The published pipeline step by step, its calibration and perfusion variants (Fig. 4, Table S5) |
+| `q4_real_data.py`, `q4_summary.py`, `q4_profile.py`, `fingerprint.py` | Calibration to the Gonzo maps, profiles and residual fingerprint (Fig. 5, Table S6) |
+| `q5_nuisance.py` | CSF-side nuisance parameters (Fig. 6, Table S7) |
+| `q7_uncertainty.py` | Cluster-robust (sandwich) uncertainty and profiles (Table S8) |
+| `q9_groups.py` | Group comparisons (Fig. 7, Table S10) |
+| `vinje_geometry.py`, `geometry_compare.py` | Second and third geometries from the Vinje et al. meshes (Table S11, Fig. S3) |
+| `nd_figures.py`, `jcbfm_figures.py`, `jcbfm_graphical_abstract.py` | Figures (working versions and journal-format exports) |
+| `run_q1_all.sh`, `run_q2_q4.sh` | Local drivers for the error budget, flow and real-data runs |
+
+Each analysis script is run as `python <script> <job>`; `python <script> list` prints the job names and
+`python <script> --summary` collects the results. The summary tables behind every figure and supplementary table are
+included in `results/nd/` (`*_summary.csv`, `*_summary.md`, `*.json`). The heavy jobs ran as Slurm arrays on a
+cluster; any job can also be run locally.
+
+Additional inputs: the Gonzo concentration maps (Zenodo, doi:10.5281/zenodo.14266867) in `../EXTERNAL_DATA/gonzo`
+or the folder named by `GONZO_DATA`, and the Vinje et al. example meshes (Zenodo, doi:10.5281/zenodo.8036492) in
+`../EXTERNAL_DATA/vinje_meshes` or the folder named by `VINJE_DATA`. `ND_GEOM` selects the geometry (`gonzo`,
+`vinje14`, `vinje4`).
 
 ## Licence
 

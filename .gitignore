@@ -7,3 +7,9 @@ results/*
 !results/boundary_params_recovered.npy
 !results/official_clock_hours.npy
 dumux_miniapp/build-*/
+!results/nd/
+results/nd/*
+!results/nd/*.csv
+!results/nd/*.md
+!results/nd/*.json
+cluster/

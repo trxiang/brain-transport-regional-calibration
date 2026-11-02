@@ -1,0 +1,48 @@
+{
+  "nodes": 99755,
+  "outer_nodes": 44697,
+  "ventricle_nodes": 2924,
+  "reproduce_twin_rel": 0.0,
+  "pial_to_ventricle": {
+    "net_flux_rel": 1.4788117743686467e-17,
+    "interior_flux_max_rel": 8.616570385467034e-15,
+    "rowsum_minus_qin_max": 2.526472862039757e-16,
+    "speed_um_min_p50_p95_max": [
+      0.04469294589310846,
+      4.124514021688063,
+      308.4250018549487
+    ],
+    "frac_cells_Pe_gt1_at_2um": 0.25070397006301637,
+    "inflow_area_frac": 0.8740122435737739
+  },
+  "ventricle_to_pial": {
+    "net_flux_rel": 0.0,
+    "interior_flux_max_rel": 5.5641532703454845e-15,
+    "rowsum_minus_qin_max": 2.052483050732628e-16,
+    "speed_um_min_p50_p95_max": [
+      0.044692945893102146,
+      4.124514021688058,
+      308.4250018549493
+    ],
+    "frac_cells_Pe_gt1_at_2um": 0.25070397006301637,
+    "inflow_area_frac": 0.12421007918995289
+  },
+  "basal_to_dorsal": {
+    "net_flux_rel": 0.0,
+    "interior_flux_max_rel": 1.4647876797841262e-13,
+    "rowsum_minus_qin_max": 6.310559502014457e-17,
+    "speed_um_min_p50_p95_max": [
+      0.7326615767733036,
+      2.5396905857907206,
+      41.18487702894876
+    ],
+    "frac_cells_Pe_gt1_at_2um": 0.2921652401391966,
+    "inflow_area_frac": 0.4689765606515055
+  },
+  "seconds_forward_plus_3_sens_lu": 51.6,
+  "sens_sD_rel_err": 4.598902695632042e-09,
+  "sens_r_rel_err": 1.505294532066618e-08,
+  "sens_vs_rel_err": 9.049732372988759e-10,
+  "mass_balance_max_rel": 7.600020463580265e-14,
+  "negmass_ratio_2um": 0.0027698262032350776
+}
