@@ -22,6 +22,9 @@ MAX_MM = 170.0                                 # journal maximum figure width
 MAX_H_MM = 234.0                               # journal maximum figure height
 FONT = os.environ.get("FIG_FONT")              # e.g. Arial for Springer journals
 PREFIX = os.environ.get("FIG_PREFIX", "Figure")
+UPPER = bool(os.environ.get("FIG_UPPER"))      # panel letters as A, B, C (MRM style); adds letters where missing
+ADD_LETTERS = {"q2_flow_speed_recovery": 3, "q5_nuisance_fits": 2, "q9_groups": 4, "q6_correlated_noise": 3,
+               "robustness_geometry_mesh": 2}
 MIN_PT = float(os.environ.get("FIG_MIN_PT", "0"))   # minimum lettering size before export scaling (0 = off)
 SYMBOLS = [(r"\balpha\b", "α"), (r"\bchi2\b", "χ²"), (r"\+-", "±"), (r"<=", "≤"), (r">=", "≥"), (r"Wahlin", "Wåhlin")]
 OUT = Path(sys.argv[1] if len(sys.argv) > 1 else "jcbfm_figs")
@@ -75,8 +78,27 @@ def polish(fig):
                     ax.tick_params(axis=which, labelsize=MIN_PT)
 
 
+def upper_letters(fig, name):
+    """Capitalise existing panel letters and add A, B, C ... to multi-panel figures that have none."""
+    from matplotlib.text import Text
+    for t in fig.findobj(Text):
+        s = t.get_text()
+        if s in ("a", "b", "c", "d") and t.get_fontweight() in ("bold", 700):
+            t.set_text(s.upper())
+        elif re.match(r"^\([a-d]\) ", s):
+            t.set_text("(" + s[1].upper() + s[2:])
+    n = ADD_LETTERS.get(name)
+    if n:
+        axes = [ax for ax in fig.axes if ax.get_label() != "<colorbar>"][:n]
+        for ax, t in zip(axes, "ABCD"):
+            b = ax.get_position()
+            fig.text(max(b.x0 - 0.045, 0.0), b.y1 + 0.02, t, fontsize=11, fontweight="bold", va="bottom")
+
+
 def save(fig, name):
     PDF.mkdir(parents=True, exist_ok=True)
+    if UPPER:
+        upper_letters(fig, name)
     if MIN_PT or os.environ.get("FIG_SYMBOLS"):
         polish(fig)
     fig.savefig(PDF / f"{name}.pdf", bbox_inches="tight")
