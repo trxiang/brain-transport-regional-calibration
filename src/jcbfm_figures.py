@@ -5,6 +5,7 @@ lays out the perfusion figure for a single page width, and builds the real-data 
 Usage: python jcbfm_figures.py <outdir>
 """
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -21,6 +22,8 @@ MAX_MM = 170.0                                 # journal maximum figure width
 MAX_H_MM = 234.0                               # journal maximum figure height
 FONT = os.environ.get("FIG_FONT")              # e.g. Arial for Springer journals
 PREFIX = os.environ.get("FIG_PREFIX", "Figure")
+MIN_PT = float(os.environ.get("FIG_MIN_PT", "0"))   # minimum lettering size before export scaling (0 = off)
+SYMBOLS = [(r"\balpha\b", "α"), (r"\bchi2\b", "χ²"), (r"\+-", "±"), (r"<=", "≤"), (r">=", "≥"), (r"Wahlin", "Wåhlin")]
 OUT = Path(sys.argv[1] if len(sys.argv) > 1 else "jcbfm_figs")
 PDF = OUT / "pdf"
 
@@ -42,8 +45,40 @@ plt.subplots = capped_subplots
 plt.figure = lambda *a, **kw: _figure(*a, **_cap(kw))
 
 
+def polish(fig):
+    """Typeset symbols (alpha -> α, chi2 -> χ², <= -> ≤) and raise lettering to at least MIN_PT."""
+    from matplotlib.text import Text
+    fig.canvas.draw()
+    for t in fig.findobj(Text):
+        s = t.get_text()
+        if s and "$" not in s:
+            for pat, rep in SYMBOLS:
+                s = re.sub(pat, rep, s)
+            t.set_text(s)
+        if MIN_PT and t.get_fontsize() < MIN_PT:
+            t.set_fontsize(MIN_PT)
+    from matplotlib.ticker import FixedFormatter
+    for ax in fig.axes:                                  # fixed tick labels are redrawn from their formatter
+        for axis in (ax.xaxis, ax.yaxis):
+            fmt = axis.get_major_formatter()
+            if isinstance(fmt, FixedFormatter):
+                seq = []
+                for lab in fmt.seq:
+                    for pat, rep in SYMBOLS:
+                        lab = re.sub(pat, rep, lab) if "$" not in lab else lab
+                    seq.append(lab)
+                fmt.seq = seq
+    if MIN_PT:
+        for ax in fig.axes:
+            for which, labels in (("x", ax.get_xticklabels()), ("y", ax.get_yticklabels())):
+                if labels and min(l.get_fontsize() for l in labels) < MIN_PT:
+                    ax.tick_params(axis=which, labelsize=MIN_PT)
+
+
 def save(fig, name):
     PDF.mkdir(parents=True, exist_ok=True)
+    if MIN_PT or os.environ.get("FIG_SYMBOLS"):
+        polish(fig)
     fig.savefig(PDF / f"{name}.pdf", bbox_inches="tight")
     plt.close(fig)
 

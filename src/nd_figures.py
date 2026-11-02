@@ -34,7 +34,7 @@ Q1_ROWS = [  # (label, roi case, field case)
     ("Flow 2 µm/min (drainage)", "E_flow_pial_inflow_drainage_2", "E_flow_pial_inflow_drainage_2_field"),
     ("Flow 4 µm/min (drainage)", "E_flow_pial_inflow_drainage_4", "E_flow_pial_inflow_drainage_4_field"),
     ("Flow 4 µm/min (basal-dorsal)", "E_flow_basal_to_dorsal_4", "E_flow_basal_to_dorsal_4_field"),
-    ("Combined input + PV errors", "C1_combo", "C1_combo_field"),
+    ("Combined errors", "C1_combo", "C1_combo_field"),
 ]
 
 
@@ -100,7 +100,7 @@ def fig_q4():
 SIG_LABELS = {"A1_linear_bc": "CSF input linear in time", "A2_amp0.85": "CSF input 15% low",
               "A2_amp1.15": "CSF input 15% high", "A3_pv0.5": "Partial volume, 1 mm",
               "A3_pv0.5_ell2": "Partial volume, 2 mm", "A6_fix_r0": "Clearance fixed at 0",
-              "B1_literature_field": "Literature diffusion field", "C1_combo": "Combined input + PV errors"}
+              "B1_literature_field": "Literature diffusion field", "C1_combo": "Combined errors"}
 
 
 def sig_label(k):
@@ -208,10 +208,10 @@ def fig_q5():
                 if truth:
                     ax.plot([x0 - 0.4, x0 + 0.4], [truth, truth], color="k", lw=1.2)
                 ticks.append(x0)
-                labs.append(olab.replace(" ", "\n"))
+                labs.append({"roi": "curves", "depth": "depth", "field": "field"}[o])
                 x0 += 1
             x0 += 0.5
-        ax.set_xticks(ticks, labs, fontsize=7)
+        ax.set_xticks(ticks, labs, fontsize=7, rotation=35, ha="right", rotation_mode="anchor")
         ax.set_yscale("log")
         ax.set_yticks([0.5, 1, 2, 3.5, 5, 10], ["0.5", "1", "2", "3.5", "5", "10"])
         ax.axhline(1.0, color="0.7", lw=0.6, ls=":")
@@ -259,12 +259,13 @@ def fig_robust():
         a1.scatter(g[col], y + 0.2 * (1 - k), marker=m, s=20, label=lab, zorder=3)
     names = {r[1]: r[0] for r in Q1_ROWS}
     names.update({r[2]: r[0] + ", field" for r in Q1_ROWS if r[2]})
-    names.update({"C1_combo_field": "Combined errors, native field", "C1_combo": "Combined errors, tissue curves"})
+    names.update({"C1_combo_field": "Combined errors, native field", "C1_combo": "Combined errors, tissue curves",
+                  "D_vinje_combo": "Truth α = 3.5, combined errors"})
     a1.set_yticks(y, [names.get(c, c) for c in g.case], fontsize=7)
     a1.set_xscale("log")
     a1.set_xticks([0.5, 1, 2, 3.5, 5], ["0.5", "1", "2", "3.5", "5"])
     a1.axvline(1.0, color="k", lw=0.8)
-    a1.set_xlabel("fitted alpha (truth alpha = 1)")
+    a1.set_xlabel("fitted alpha (truth alpha = 1 unless stated)")
     a1.legend(frameon=False, fontsize=7, loc="lower right")
     a1.set_title("same errors, three brains", fontsize=9)
     keys = [k for k in mc if k != "base"]
@@ -275,18 +276,20 @@ def fig_robust():
         coarse = [mc[k][f"alpha_coarse_{o}"] / mc["base"][f"alpha_coarse_{o}"] for k in keys]
         fine = [mc[k][f"alpha_fine_{o}"] / mc["base"][f"alpha_fine_{o}"] for k in keys]
         a2.scatter(x + 0.12 * (2 * j - 1) - 0.04, coarse, marker=mk, facecolors="none", edgecolors="#c0504d",
-                   label=f"{o}, base mesh")
-        a2.scatter(x + 0.12 * (2 * j - 1) + 0.04, fine, marker=mk, color="#4f81bd", label=f"{o}, refined mesh")
+                   label=f"{OBS_LABELS[o]}, working mesh")
+        a2.scatter(x + 0.12 * (2 * j - 1) + 0.04, fine, marker=mk, color="#4f81bd", label=f"{OBS_LABELS[o]}, refined mesh")
     a2.set_xticks(x, [labs.get(k, k) for k in keys], fontsize=7, rotation=20)
     a2.axhline(1.0, color="0.7", lw=0.6, ls=":")
     a2.set_ylabel("alpha / alpha(no flow, same mesh)")
-    a2.set_title("flow-induced enhancement vs mesh (µm/min)", fontsize=9)
-    a2.legend(frameon=False, fontsize=6.5, loc="upper right")
+    a2.set_title("flow-induced enhancement vs mesh", fontsize=9)
+    a2.set_xlabel("flow truth (µm/min)")
+    a2.set_ylim(0.95, 2.05)
+    a2.legend(frameon=False, fontsize=6.5, loc="upper left", ncol=1)
     save(fig, "robustness_geometry_mesh")
 
 
-STEP_LABELS = {"S0": "exact inputs", "S1": "+ combined errors", "S2": "+ scans <= 48 h", "S3": "+ regional isotropic D",
-               "S4": "+ alpha in cortex only", "S5": "+ boundary voxel prescribed", "S6": "+ alpha >= 1 (published)",
+STEP_LABELS = {"S0": "exact inputs", "S1": "+ combined errors", "S2": "+ scans ≤ 48 h", "S3": "+ regional isotropic D",
+               "S4": "+ α in cortex only", "S5": "+ boundary voxel prescribed", "S6": "+ α ≥ 1 (published)",
                "P_exact": "published, exact data", "P_nopv": "published, no partial volume", "P_roi": "published, tissue curves"}
 
 
@@ -313,9 +316,9 @@ def fig_pipeline():
     truth_alpha = {"base": 1.0, "cx2": 2.0, "cx3.5": 3.5}           # alpha in cortex (base: alpha 1 everywhere)
     syn = df[df.kind == "syn"]
     for step, lab, col, mk in (("S6", "combined errors", "#c0504d", "o"),
-                               ("S6w", "same, volume-weighted", "#c0504d", "x"),
+                               ("S6w", "volume-weighted", "#c0504d", "x"),
                                ("P_nopv", "no partial volume", "#9bbb59", "s"),
-                               ("P_exact", "exact observations", "k", "^")):
+                               ("P_exact", "exact data", "k", "^")):
         g = syn[(syn.step == step) & syn.case.isin(truth_alpha)]
         if len(g):
             g = g.assign(t=g.case.map(truth_alpha)).sort_values("t")
@@ -368,7 +371,7 @@ def fig_perfusion():
     g = syn[(syn.err == "exact") & (syn.model == "perf")]
     a2.scatter([tq[t] for t in g.truth], g.Q, marker="o", color="k", s=14, label="exact data, field", zorder=4)
     a2.plot([0, 50], [0, 50], color="0.6", lw=0.8, ls="--")
-    a2.axhspan(25, 65, color="#4f81bd", alpha=0.12, lw=0)
+    a2.axhspan(25, 65, color="#eaf0f7", lw=0, zorder=0)
     a2.set_xlabel("true perfusion Q (mL/h)")
     a2.set_ylabel("fitted Q (mL/h), alpha fixed at 1")
     a2.set_title("perfusion is not identified\n(shaded: 45 +- 20 mL/h, Wahlin 2026)", fontsize=8.5)
@@ -380,13 +383,13 @@ def fig_perfusion():
     a3.set_yticks(np.arange(len(r)), r.lab, fontsize=6)
     for yi, q in enumerate(r.Q):
         a3.text(q + 0.8, yi, f"{q:.0f}", va="center", fontsize=5.5)
-    a3.axvspan(25, 65, color="#4f81bd", alpha=0.12, lw=0)
+    a3.axvspan(25, 65, color="#eaf0f7", lw=0, zorder=0)
     a3.set_xlabel("fitted Q (mL/h), alpha = 1")
     a3.set_title("Gonzo data (blue: input scale fitted)", fontsize=8.5)
     save(fig, "q8_perfusion")
 
 
-GRP_LABELS = {"csfslow": "CSF slower", "csffast": "CSF faster", "rlow": "r -33%", "rlow_csfslow": "r -33% +\nCSF slower"}
+GRP_LABELS = {"csfslow": "CSF\nslower", "csffast": "CSF\nfaster", "rlow": "r −33%", "rlow_csfslow": "r −33%\n+ CSF slower"}
 ANALYST_STYLE = {"exact_field": ("exact inputs", "k", "o"), "combo_roi": ("errors, tissue curves", "#c0504d", "s"),
                  "combo_field": ("errors, native field", "#4f81bd", "^"), "vinje": ("published pipeline", "#9bbb59", "D")}
 
